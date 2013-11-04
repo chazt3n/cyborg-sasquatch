@@ -1,12 +1,26 @@
-var express = require("express");
-var app = express();
-app.use(express.logger());
+var app = require("./app");
 
-app.get('/', function(request, response) {
-  response.send('Hello World!');
-});
+//TODO: read options from DB
+var options = {
+  auth: 'XXXXXXXXXXXXXXXXXXXXXXX',
+  userId: 'XXXXXXXXXXXXXXXXXXXXXXX',
+  roomId: 'XXXXXXXXXXXXXXXXXXXXXXX',
+  version: '1.0-beta.7'
+};
 
-var port = process.env.PORT || 5000;
-app.listen(port, function() {
-  console.log("Listening on " + port);
+var bot = new app.Bot(options.auth, options.userId, options.roomId);
+
+app.tools.setupBasicInteractions(bot, options);
+
+bot.on('speak', function(data){
+  console.log(data.name + ': ' + data.text);
+  if (data.text === '/who') {
+    bot.speak('I am Cyborg Sasquatch, version ' + options.version + '. I fight for the users.');
+  }
+  else if (data.text === '/skip' && app.tools.checkAccess(data.userid, bot, options)) {
+    bot.skip();
+  }
+  else if (data.text === '/add' && app.tools.checkAccess(data.userid, bot, options)) {
+    app.tools.snagCurrentSong(bot);
+  }
 });
